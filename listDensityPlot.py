@@ -38,8 +38,10 @@ def listDensityPlot(x,y,z):
 	plt.xlabel('xLabel [xUnit]')
 	plt.ylabel('yLabel [yUnit]')
 	plt.grid()
-	plt.show()
+
 
 if __name__ == '__main__':
 	listDensityPlot(xExampleData,yExampleData,zExampleData)
+	# I took the plt.show() out of the function in order to be able to change parts of the plot
 	plt.xlabel('This is a new xlabel')
+	plt.show()
