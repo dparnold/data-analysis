@@ -42,3 +42,4 @@ def listDensityPlot(x,y,z):
 
 if __name__ == '__main__':
 	listDensityPlot(xExampleData,yExampleData,zExampleData)
+	plt.xlabel('This is a new xlabel')
