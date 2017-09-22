@@ -1,47 +1,44 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib.colors import LogNorm
 
-# Create some example data to see whether we are doing the job right
-xExampleData = [1, 1, 1, 2, 2, 2, 3, 3, 3]
-yExampleData = [10, 20, 30, 10, 20, 30, 10, 20, 30]
-zExampleData = [0, 3, 0, 3, 4, 5, 1, 1, 6]
+def listDensityPlot(x,y,z, ax):
+	data = pd.DataFrame(
+		{'x':x,
+		 'y':y,
+		 'z':z
+		}
+	)
+	xUnique = np.sort(data.x.unique())
+	yUnique = data.y.unique()
+	matrix = np.zeros((len(xUnique),len(yUnique)))
+	for i, xValue in enumerate(xUnique):
+		matrix[i, :] = data.sort_values(['y'])[data.x == xValue]['z']
+	matrix = np.rot90(matrix)
 
-def listDensityPlot(x,y,z):
-	# Convert to numpy arrays
-	x =  np.array(x)
-	y =  np.array(y)
-	z =  np.array(z)
+	densityPlot = ax.imshow(matrix, aspect='auto',
+			   extent=(np.min(xUnique), np.max(xUnique), np.min(yUnique), np.max(yUnique)))
+	# norm=LogNorm(vmin=data.z.min(), vmax=data.z.max()) can also be used
 
-	xUnique = np.unique(x) # Returns the sorted unique elements of an array
-	yUnique = np.unique(y)
+	return densityPlot
 
-	imageZ = np.zeros((len(xUnique),len(yUnique))) # Create 2D numpy array for plotting
+if __name__ == "__main__":
+	import pltStyle # used for formatting the plots
+	data = pd.read_csv("listDensityPlot.csv", sep=",")
 
-	for i,xitem in enumerate(xUnique):
-		xMask = x==xitem 			# Create a array of Bool values where the value xitem is located in x
-		for j,yitem in enumerate(yUnique):
-			yMask = y==yitem		# Create a array of Bool values where the value yitem is located in y
-			if np.sum(xMask*yMask)!=0:	# Ignore missing values
-				imageZ[i,j] = z[xMask * yMask] 	# Set the value of imageZ at i,j to the appropriate value of z for the combination of xitem and yitem
-	# xMask * yMask gives a Bool array where only one value is true
-	# Example: 	exampleMask = np.array([False,False,True,False,False,False], dtype=bool)
-	# 			exampleArray = np.array([1, 2, 3, 4, 5, 6])
-	#			exampleArray[exampleMask] gives the value of 3 because there is the only True value
+	# create a new figure and some subplots
+	fig, ((ax1, ax2)) = plt.subplots(2, 1, sharex=True,)
 
-	# Do the plotting
-	plt.imshow(np.rot90(imageZ), aspect='auto', extent=(np.min(xUnique),np.max(xUnique),np.min(yUnique),np.max(yUnique)))
-	# Add norm=LogNorm(vmin=np.min(z), vmax= np.max(z)) for logarithmic axis
-	plt.colorbar(label='zLabel [zUnit]')
+	# add first plot to ax1
+	densityPlot1 = listDensityPlot(data.E1,data.E2,data.timeSpread, ax1)
+	plt.colorbar(densityPlot1, ax=ax1, label='zLabel1 [zUnit]')
+	ax1.set_ylabel("yLabel1 [yUnit]")
+	# add second plot to ax2
+	densityPlot2 = listDensityPlot(data.E1, data.E2, data.TOF, ax2)
+	plt.colorbar(densityPlot2, ax=ax2, label="zLabel2 [zUnit]")
+	ax2.set_ylabel("yLabel2 [yUnit]")
+	ax2.set_xlabel("xLabel [xUnit]")
+	plt.tight_layout()
+	plt.savefig("listDensityPlot.png")
 
-	plt.title('plotTitle')
-	plt.xlabel('xLabel [xUnit]')
-	plt.ylabel('yLabel [yUnit]')
-	plt.grid()
-
-
-if __name__ == '__main__':
-	listDensityPlot(xExampleData,yExampleData,zExampleData)
-	# I took the plt.show() out of the function in order to be able to change parts of the plot
-	plt.xlabel('This is a new xlabel')
-	plt.show()
